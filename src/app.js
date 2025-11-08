@@ -16,6 +16,9 @@ app.use(cors());
 app.get('/mediguide/api/v1/healthCheck',(req,res)=> {
     return res.status(200).json(new ApiResponse(200,"OK","Server Started successfully"));
 })
-app.use("/mediguide/api/v1/doctors",adminRouter);
+
+// ------ ADMIN ROUTES
+// localhost port 3173 
+app.use("/mediguide/api/v1/admin",adminRouter);
 
 export { app };

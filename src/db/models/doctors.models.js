@@ -73,7 +73,7 @@ const doctorSchema = new mongoose.Schema(
 doctorSchema.pre("save",async function(next){
     if(!this.isModified("password")) next();
 
-    const hashedPassword  = await bcrypt(this.password,12);
+    const hashedPassword  = await bcrypt.hash(this.password,12);
     console.log("Password has been hashed",hashedPassword);
     this.password = hashedPassword;
     next();
@@ -87,7 +87,7 @@ doctorSchema.method.isPasswordCorrect = async function(password){
     return isCorrect;
 }
 
-userSchema.methods.generateAccessToken = function(){
+doctorSchema.methods.generateAccessToken = function(){
   return jwt.sign({
     _id : this._id
   },process.env.ACCESS_TOKEN_SECRET,{
@@ -95,7 +95,7 @@ userSchema.methods.generateAccessToken = function(){
   });
 }
 
-userSchema.methods.generateRefreshToken = function(){
+doctorSchema.methods.generateRefreshToken = function(){
   return jwt.sign({
     _id : this._id
   },process.env.REFRESH_TOKEN_SECRET,{

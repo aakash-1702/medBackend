@@ -1,11 +1,99 @@
-import {ApiError} from "../utils/apiError.js";
-import {ApiResponse} from "../utils/apiResponse.js";
-import {asyncHandler} from '../utils/asyncHandler.js';
+import { ApiError } from "../utils/apiError.js";
+import { ApiResponse } from "../utils/apiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import Doctor from "../db/models/doctors.models.js";
+import { signUpValidation } from "../validations/input.validations.js";
+import { uploadAtCloudinary } from "../utils/cloudinary.utils.js";
 // adding the doctor
-const addDoctor = asyncHandler(async (req,res)=>{
-    const { name , email , password , speciality , degree , experience , about , fees, address } = req.body;
+const addDoctor = asyncHandler(async (req, res) => {
+  console.log(req.body);
+  console.log(req.file);
+  if (!req.body) {
+    throw new ApiError(400, "Please provide the signUp data");
+  }
+  req.body.address = req.body?.address ? JSON.parse(req.body.address) : {};
+  if (!req.file) throw new ApiError(400, "Images can not be empty");
+  const {
+    name,
+    email,
+    password,
+    speciality,
+    degree,
+    experience,
+    about,
+    fees,
+    address,
+  } = req.body;
+  const imageFile = req.file;
+  console.log(typeof address);
 
+  const doctorExists = await Doctor.findOne({
+    email,
+  });
+
+  if (doctorExists) throw new ApiError(401, "Doctor already exists");
+  console.log("Doctor does not exists");
+
+  const inputValidation = signUpValidation.safeParse({
+    name,
+    email,
+    password,
+    speciality,
+    degree,
+    experience,
+    about,
+    fees,
+    address,
+  });
+
+  if (!inputValidation.success) {
+    throw new ApiError(
+      400,
+      inputValidation.error,
+      "there was an error in the input fielsds"
+    );
+  }
+
+  console.log("Validation was successful");
+
+  let response;
+
+  try {
+    response = await uploadAtCloudinary(imageFile.path);
+    console.log("File Uploaded successfully");
+    if (!response)
+      throw new ApiError(401, "Unable to upload at cloudinary at this moment");
+  } catch (error) {
+    console.log(error);
+    throw new ApiError(401, error, "Something went wrong");
+  }
+
+  console.log(response);
+
+  try {
+    const newUser = await Doctor.create({
+    name,
+    email,
+    password,
+    image: response.secure_url,
+    speciality,
+    degree,
+    experience,
+    about,
+    fees,
+    address,
+    
+  });    
+  const doctorAdded = await Doctor.find({
+    email
+  }).select("--password");
+  return res.status(201).json(new ApiResponse(201,doctorAdded,"Doctor has been added to the db"));
+  } catch (error) {
+    console.log(error);
+    throw new ApiError(401,"Unable to add doctor to the database");    
+  }
+
+  
 });
 
-
-export {addDoctor};
+export { addDoctor };
