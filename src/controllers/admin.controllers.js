@@ -4,6 +4,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import Doctor from "../db/models/doctors.models.js";
 import { signUpValidation } from "../validations/input.validations.js";
 import { uploadAtCloudinary } from "../utils/cloudinary.utils.js";
+import jwt from "jsonwebtoken";
 // adding the doctor
 const addDoctor = asyncHandler(async (req, res) => {
   console.log(req.body);
@@ -72,28 +73,47 @@ const addDoctor = asyncHandler(async (req, res) => {
 
   try {
     const newUser = await Doctor.create({
-    name,
-    email,
-    password,
-    image: response.secure_url,
-    speciality,
-    degree,
-    experience,
-    about,
-    fees,
-    address,
-    
-  });    
-  const doctorAdded = await Doctor.find({
-    email
-  }).select("--password");
-  return res.status(201).json(new ApiResponse(201,doctorAdded,"Doctor has been added to the db"));
+      name,
+      email,
+      password,
+      image: response.secure_url,
+      speciality,
+      degree,
+      experience,
+      about,
+      fees,
+      address,
+    });
+    const doctorAdded = await Doctor.find({
+      email,
+    }).select("--password");
+    return res
+      .status(201)
+      .json(
+        new ApiResponse(201, doctorAdded, "Doctor has been added to the db")
+      );
   } catch (error) {
     console.log(error);
-    throw new ApiError(401,"Unable to add doctor to the database");    
+    throw new ApiError(401, "Unable to add doctor to the database");
   }
-
-  
 });
 
-export { addDoctor };
+const logInAdmin = async (req, res) => {
+  const token = jwt.sign(
+    {
+      role: "ADMIN",
+      email: process.env.ADMIN_EMAIL,
+    },
+    process.env.JWT_SECRET
+  );  
+
+  res.cookie("auth",token,{
+    httpOnly : true,
+    secure : process.env.NODE_ENV === "production"
+  });
+
+
+  return res.json(new ApiResponse(200, token, "Admin has been loggedIn successfully"));
+};
+
+export { addDoctor, logInAdmin };
