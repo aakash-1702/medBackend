@@ -5,6 +5,26 @@ import Doctor from "../db/models/doctors.models.js";
 import { signUpValidation } from "../validations/input.validations.js";
 import { uploadAtCloudinary } from "../utils/cloudinary.utils.js";
 import jwt from "jsonwebtoken";
+
+// -----------lOG IN ADIN
+const logInAdmin = asyncHandler(async (req, res) => {
+  const token = jwt.sign(
+    {
+      role: "ADMIN",
+      email: process.env.ADMIN_EMAIL,
+    },
+    process.env.JWT_SECRET
+  );
+
+  res.cookie("auth", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+  });
+
+  return res.json(
+    new ApiResponse(200, token, "Admin has been loggedIn successfully")
+  );
+});
 // adding the doctor
 const addDoctor = asyncHandler(async (req, res) => {
   console.log(req.body);
@@ -98,22 +118,44 @@ const addDoctor = asyncHandler(async (req, res) => {
   }
 });
 
-const logInAdmin = async (req, res) => {
-  const token = jwt.sign(
-    {
-      role: "ADMIN",
-      email: process.env.ADMIN_EMAIL,
-    },
-    process.env.JWT_SECRET
-  );  
+const getAllDoctors = asyncHandler(async (req, res) => {
+  try {
+    const allDoctors = await Doctor.find().select("-password");
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          allDoctors,
+          "All Doctors data retrieved successfully"
+        )
+      );
+  } catch (e) {
+    console.log(error);
+    throw new ApiError(401, "Something went wrong");
+  }
+});
 
-  res.cookie("auth",token,{
-    httpOnly : true,
-    secure : process.env.NODE_ENV === "production"
-  });
+const changeAvailablity = asyncHandler(async (req, res) => {
+  try {
+    const _id = req.params;
+    const doctor = await Doctor.findByIdAndUpdate(
+      _id,
+      [{ $set: { available: { $not: "$available" } } }], // for changing or swapping true with false and vice-versa , in just one operation without pre fetching of the available status
+      { new: true }
+    ).select("-password");
 
+    return res
+      .status(200)
+      .json(new ApiResponse(200, doctor, "Availability updated successfully"));
+  } catch (error) {
+    console.log(error);
+    throw new ApiError(
+      401,
+      error,
+      "Error while updating the availability status"
+    );
+  }
+});
 
-  return res.json(new ApiResponse(200, token, "Admin has been loggedIn successfully"));
-};
-
-export { addDoctor, logInAdmin };
+export { addDoctor, logInAdmin, getAllDoctors, changeAvailablity };

@@ -3,6 +3,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import { ApiResponse } from "./utils/apiResponse.js";
 import adminRouter from "./routes/adminRoutes.js";
+// localhost port 3173 
 
 
 // ----------------------- configuration for express
@@ -18,7 +19,7 @@ app.get('/mediguide/api/v1/healthCheck',(req,res)=> {
 })
 
 // ------ ADMIN ROUTES
-// localhost port 3173 
+
 app.use("/mediguide/api/v1/admin",adminRouter);
 
 export { app };
