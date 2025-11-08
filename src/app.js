@@ -3,6 +3,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import { ApiResponse } from "./utils/apiResponse.js";
 import adminRouter from "./routes/adminRoutes.js";
+import doctorRouter from "./routes/doctorsRoutes.js";
 // localhost port 3173 
 
 
@@ -21,5 +22,12 @@ app.get('/mediguide/api/v1/healthCheck',(req,res)=> {
 // ------ ADMIN ROUTES
 
 app.use("/mediguide/api/v1/admin",adminRouter);
+
+
+// ---------------- DOCTOR ROUTES
+app.use("/mediguide/api/v1/doctor",doctorRouter);
+
+// ------------PATIENT ROUTES
+app.use("/mediguide/api/v1/patients",)
 
 export { app };

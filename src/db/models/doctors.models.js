@@ -82,7 +82,7 @@ doctorSchema.pre("save",async function(next){
 
 
 // ----- methods on the data
-doctorSchema.method.isPasswordCorrect = async function(password){
+doctorSchema.methods.isPasswordCorrect = async function(password){
     const isCorrect = await bcrypt.compare(password,this.password);// return bool value
     return isCorrect;
 }

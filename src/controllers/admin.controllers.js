@@ -2,7 +2,7 @@ import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import Doctor from "../db/models/doctors.models.js";
-import { signUpValidation } from "../validations/input.validations.js";
+import { signUpValidation } from "../validations/admininput.validations.js";
 import { uploadAtCloudinary } from "../utils/cloudinary.utils.js";
 import jwt from "jsonwebtoken";
 

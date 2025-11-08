@@ -67,4 +67,6 @@ const logInValidation = z.object({
     }),
 });
 
+
+
 export { signUpValidation, logInValidation };
