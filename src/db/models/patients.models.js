@@ -25,7 +25,7 @@ const patientSchema = new mongoose.Schema(
 
     image: {
       type: String,      
-      default : "../../../public/assets/patients.webp"
+      default : "public/assests/patients.jpg"
     } , 
 
     address: {
@@ -35,12 +35,12 @@ const patientSchema = new mongoose.Schema(
 
     gender: {
       type: String,
-      required: [true, "Gender is required"],
-      enum: ["Male", "Female", "Other"],
+      required: [true, "Gender is required"]      
     },
 
     dob: {
-      type: String, // or use Date if you want actual date comparison
+      type: Date, // or use Date if you want actual date comparison
+      required : true
     },
 
     phone: {
@@ -51,11 +51,12 @@ const patientSchema = new mongoose.Schema(
   { timestamps: true } // adds createdAt and updatedAt
 );
 
-patientSchema.pre("save",async function(){
+patientSchema.pre("save",async function(next){
     if(!this.isModified("password")) next();
 
-    const hashedPassword = bcrypt.hash(this.password,12);
+    const hashedPassword = await bcrypt.hash(this.password,12);
     this.password = hashedPassword;
+    next();
 });
 
 
