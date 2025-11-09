@@ -1,6 +1,6 @@
 import {Router} from 'express';
 const patientRouter = Router();
-import { getAllDoctors , createPatient , logInPatient, profileData , updateProfileData , bookAppointement} from '../controllers/patients.controllers.js';
+import { getAllDoctors , createPatient , logInPatient, profileData , updateProfileData , bookAppointement ,  cancleAppointment , getAllBookings} from '../controllers/patients.controllers.js';
 import { upload } from '../middlewares/multer.middlewares.js';
 import { patientValidation } from '../middlewares/patient.middlewares.js';
 
@@ -21,6 +21,8 @@ patientRouter.post('/updateProfile/:id',patientValidation,upload.single("profile
 // ----------- APPOINTMENT BOOKING AND CANCELLATION FEATURES
 // for adding an appointment , we are just taking the doctorId and and date and time for which patient wants to visit the doctor
 patientRouter.post('/bookAppointement/:id',patientValidation,bookAppointement);
+patientRouter.get('/myBookings/:id',patientValidation,getAllBookings);
+patientRouter.delete('/cancleAppointement/:id',patientValidation,cancleAppointment);
 
 
 

@@ -6,6 +6,7 @@ import Doctor from "../db/models/doctors.models.js";
 import { uploadAtCloudinary } from "../utils/cloudinary.utils.js";
 import jwt from "jsonwebtoken";
 import Appointment from "../db/models/appointments.models.js";
+import freeSlotfromDoctor from "../utils/freeSlotfromDoctor.utils.js";
 
 const getAllDoctors = asyncHandler(async (req, res) => {
   try {
@@ -140,7 +141,7 @@ const updateProfileData = asyncHandler(async (req, res) => {
 });
 
 const bookAppointement = asyncHandler(async (req, res) => {
-  console.log('Request reached appointment');
+  console.log("Request reached appointment");
   const patientId = req.params.id;
   console.log(patientId);
   console.log(req.body);
@@ -151,6 +152,8 @@ const bookAppointement = asyncHandler(async (req, res) => {
     throw new ApiError(401, "Unable to fetch doc Data at this moment");
 
   const slots_booked = docData.slots_booked;
+
+  console.log(docData.available);
 
   // checking if the doctor is available or not
   if (!docData.available) {
@@ -165,11 +168,12 @@ const bookAppointement = asyncHandler(async (req, res) => {
       );
   }
 
-  const slotNum = Number(slotTime);
+  // const slotNum = Number(slotTime);
+  // console.log(typeof (slotTime));
 
   // checking if the slotDate and slotTime  is available or not
   if (slots_booked[slotDate]) {
-    if (slots_booked[slotDate].includes(slotNum)) {
+    if (slots_booked[slotDate].includes(slotTime)) {
       return res
         .status(300)
         .json(
@@ -180,16 +184,14 @@ const bookAppointement = asyncHandler(async (req, res) => {
           )
         );
     } else {
-      slots_booked[slotDate].push(slotNum);
+      slots_booked[slotDate].push(slotTime);
     }
   } else {
     slots_booked[slotDate] = [];
-    slots_booked[slotDate].push(slotNum);
+    slots_booked[slotDate].push(slotTime);
   }
 
-  delete docData.slots_booked;
-
-  const updatedDoctor = await  Doctor.findByIdAndUpdate(
+  const updatedDoctor = await Doctor.findByIdAndUpdate(
     docId,
     {
       slots_booked,
@@ -212,8 +214,74 @@ const bookAppointement = asyncHandler(async (req, res) => {
     amount: docData.fees,
     date: Date.now(),
   });
-  if(!appointmentBooked) throw new ApiError(401,"Unable to process appointment at the moment");
-  return res.status(201).json(new ApiResponse(201,appointmentBooked,"Appointment booked successfully"));
+  if (!appointmentBooked)
+    throw new ApiError(401, "Unable to process appointment at the moment");
+  return res
+    .status(201)
+    .json(
+      new ApiResponse(201, appointmentBooked, "Appointment booked successfully")
+    );
+});
+
+const getAllBookings = asyncHandler(async (req, res) => {
+  const patientId = req.params.id;
+  const myBookings = await Appointment.find({
+    $and: { patientId: patientId, cancelled: false },
+  }).select(["-userData", "-docData"]);
+  if (!myBookings)
+    throw new ApiError(401, "Unable to fetch your appointments at this moment");
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, myBookings, "Appointments displayed successfully")
+    );
+});
+
+const cancleAppointment = asyncHandler(async (req, res) => {
+  const patientId = req.params.id;
+  const { appointmentId } = req.body;
+  const appointment = await Appointment.findByIdAndUpdate(appointmentId, {
+    cancelled: true,
+  });
+  
+  if (!appointment) throw new ApiError(401, "Unable to fetch the appointment");
+  console.log(appointment);
+  const { docId, slotDate, slotTime } = appointment;
+  const dateKey = new Date(slotDate)
+  .toLocaleDateString("en-CA") // gives 2025-11-10
+  .replace(/-/g, "/");          // now 2025/11/10
+
+
+
+  console.log(dateKey);
+
+
+  const doctor = await Doctor.findById(docId);
+  if (!doctor)
+    throw new ApiError(401, "Unable to fetch the doctor at the moment");
+
+  console.log(doctor);
+
+  const slots_booked = doctor.slots_booked;
+  console.log(slots_booked);
+  const newSlots = slots_booked[dateKey].filter((time) => time !== slotTime);
+  slots_booked[dateKey] = newSlots;
+
+  const updatedDoctor = await Doctor.findByIdAndUpdate(
+    docId,
+    {
+      slots_booked : slots_booked
+    },
+    { new: true }
+  );
+
+  if (!updatedDoctor)
+    throw new ApiError(401, "Unable to update the slots for doctor");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "OK", "Appointment canceled "));
 });
 
 export {
@@ -223,4 +291,7 @@ export {
   profileData,
   updateProfileData,
   bookAppointement,
+  getAllBookings,
+  cancleAppointment,
+  
 };

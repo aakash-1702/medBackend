@@ -51,4 +51,8 @@ const changeAvailablity = asyncHandler(async (req, res) => {
   }
 });
 
-export {logInDoctor , changeAvailablity};
+
+const getMyAppointments = asyncHandler(async (req,res) => {
+  
+});
+export {logInDoctor , changeAvailablity , getMyAppointments};

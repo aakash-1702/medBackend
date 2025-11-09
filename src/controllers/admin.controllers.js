@@ -5,6 +5,8 @@ import Doctor from "../db/models/doctors.models.js";
 import { signUpValidation } from "../validations/admininput.validations.js";
 import { uploadAtCloudinary } from "../utils/cloudinary.utils.js";
 import jwt from "jsonwebtoken";
+import Appointment from "../db/models/appointments.models.js";
+import Patient from "../db/models/patients.models.js";
 
 // -----------lOG IN ADIN
 const logInAdmin = asyncHandler(async (req, res) => {
@@ -158,4 +160,36 @@ const changeAvailablity = asyncHandler(async (req, res) => {
   }
 });
 
-export { addDoctor, logInAdmin, getAllDoctors, changeAvailablity };
+const getAllAppointments = asyncHandler(async (req,res) =>{
+  const allAppointments = await Appointment.find();
+  if(!allAppointments) throw new ApiError(401,"Unable to fetch the requests at the moment");
+  return res.status(200).json(new ApiResponse(200,allAppointments,"Appointments fetched successfully"));
+
+});
+
+const getDashboardData = asyncHandler(async (req,res) => {
+  const patientCount = await Patient.countDocuments();
+  if(!patientCount) throw new ApiError(401,"Error calculating total no of patients");
+  const doctorCount = await Doctor.countDocuments();
+  if(!doctorCount) throw new ApiError(401,"Error calculating total no of doctors");
+  const latestAppointmets = await Appointment.find({
+    cancelled : false
+  }).sort({createdAt : -1}).limit(5);
+  if(!latestAppointmets) throw new ApiError(401,"Error fetching latest Appointments");
+
+  const responseObj = {
+    patientCount,
+    doctorCount,
+    latestAppointmets
+  };
+  return res.status(200).json(new ApiResponse(200,responseObj,"Dashboard data sent successfully"));
+});
+
+export {
+  addDoctor,
+  logInAdmin,
+  getAllDoctors,
+  changeAvailablity,
+  getAllAppointments,
+  getDashboardData,
+};
