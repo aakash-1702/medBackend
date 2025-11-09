@@ -59,6 +59,27 @@ patientSchema.pre("save",async function(next){
     next();
 });
 
+patientSchema.methods.isPasswordCorrect = async function(password){
+    const isCorrect = await bcrypt.compare(password,this.password);// return bool value
+    return isCorrect;
+}
+
+patientSchema.methods.generateAccessToken = function(){
+  return jwt.sign({
+    _id : this._id
+  },process.env.ACCESS_TOKEN_SECRET,{
+    expiresIn : process.env.ACCESS_TOKEN_EXPIRY
+  });
+}
+
+patientSchema.methods.generateRefreshToken = function(){
+  return jwt.sign({
+    _id : this._id
+  },process.env.REFRESH_TOKEN_SECRET,{
+    expiresIn : process.env.REFRESH_TOKEN_EXPIRY
+  });
+}
+
 
 const Patient = mongoose.model("Patient",patientSchema,"patient");
 

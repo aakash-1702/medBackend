@@ -138,7 +138,7 @@ const getAllDoctors = asyncHandler(async (req, res) => {
 
 const changeAvailablity = asyncHandler(async (req, res) => {
   try {
-    const _id = req.params;
+    const _id = req.params._id;
     const doctor = await Doctor.findByIdAndUpdate(
       _id,
       [{ $set: { available: { $not: "$available" } } }], // for changing or swapping true with false and vice-versa , in just one operation without pre fetching of the available status
