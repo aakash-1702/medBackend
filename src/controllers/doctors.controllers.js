@@ -3,6 +3,7 @@ import Doctor from '../db/models/doctors.models.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiError } from '../utils/apiError.js';
 import { ApiResponse } from '../utils/apiResponse.js';
+import Appointment from '../db/models/appointments.models.js';
 
 
 const logInDoctor = asyncHandler(async (req,res) => {
@@ -53,6 +54,14 @@ const changeAvailablity = asyncHandler(async (req, res) => {
 
 
 const getMyAppointments = asyncHandler(async (req,res) => {
-  
+  const docId = req.params.id;
+  const myAppointments = await Appointment.find({
+    docId,
+    cancelled : false
+  });
+  if(!myAppointments) throw new ApiError(401,"Unable to load the appointments at this moment");
+
+  return res.status(200).json(new ApiResponse(200,myAppointments,"Your appointments"));
+
 });
 export {logInDoctor , changeAvailablity , getMyAppointments};
