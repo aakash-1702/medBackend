@@ -18,7 +18,7 @@ const freeSlotfromDoctor = asyncHandler(async (docId, slotDate, slotTime) => {
     { $unset: { [`slots_booked.${dateKey}`]: "" } }
   );
 
-  console.log("✅ Slot removed for", docId, dateKey, timeKey);
+  console.log("Slot removed for", docId, dateKey, timeKey);
   return true;
 });
 

@@ -133,7 +133,7 @@ const getAllDoctors = asyncHandler(async (req, res) => {
         )
       );
   } catch (e) {
-    console.log(error);
+    console.log(e);
     throw new ApiError(401, "Something went wrong");
   }
 });
